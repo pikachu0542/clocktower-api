@@ -64,38 +64,39 @@ app.get('/api/scripts', async (req, res) => {
 });
 
 //get a specific script by id
-app.get('/api/scripts/:id', async (req, res) => {
-  const scriptId = req.params.id;
-  try {
-    const script_result = await pool.query('SELECT * FROM scripts WHERE id = $1', [scriptId]);
-    if (script_result.rows.length === 0) {
-      return res.status(404).json({ error: 'Script not found' });
-    }
-    const script_roles_result = await pool.query(
-      `SELECT
-          r.id
-          r.role_name,
-          r.description,
-          t.team_name,
-          a.alignment_name
-      FROM roles r
-              JOIN script_roles sr ON r.id = sr.role_id
-              JOIN role_teams t ON r.team_id = t.id
-              JOIN alignments a ON t.alignment_id = a.id
-      WHERE sr.script_id = $1;`, [scriptId]);
+  app.get('/api/scripts/:id', async (req, res) => {
+    const scriptId = req.params.id;
+    try {
+      const script_result = await pool.query('SELECT * FROM scripts WHERE id = $1', [scriptId]);
+      if (script_result.rows.length === 0) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+      const script_roles_result = await pool.query(
+        `SELECT
+            r.id,
+            r.role_name,
+            r.description,
+            t.team_name,
+            a.alignment_name
+          FROM roles r
+            JOIN script_roles sr ON r.id = sr.role_id
+            JOIN role_teams t ON r.team_id = t.id
+            JOIN alignments a ON t.alignment_id = a.id
+          WHERE sr.script_id = $1;`,
+  [scriptId]);
       
-    script_result.rows[0].roles = script_roles_result.rows.map(row => ({
-      id: row.id,
-      role_name: row.role_name,
-      description: row.description,
-      team_name: row.team_name,
-      alignment_name: row.alignment_name
-    }));
+      script_result.rows[0].roles = script_roles_result.rows.map(row => ({
+        id: row.id,
+        role_name: row.role_name,
+        description: row.description,
+        team_name: row.team_name,
+        alignment_name: row.alignment_name
+      }));
 
-    res.json(script_result.rows[0]);
-    
-  } catch (err) {
-    console.error('Error querying script:', err);
-    res.status(500).json({ error: 'Database error' });
-  }
-});
+      res.json(script_result.rows[0]);
+      
+    } catch (err) {
+      console.error('Error querying script:', err);
+      res.status(500).json({ error: 'Database error' });
+    }
+  });
