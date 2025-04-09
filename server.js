@@ -67,11 +67,15 @@ app.get('/api/scripts', async (req, res) => {
 app.get('/api/scripts/:id', async (req, res) => {
   const scriptId = req.params.id;
   try {
-    const result = await pool.query('SELECT * FROM scripts WHERE id = $1', [scriptId]);
-    if (result.rows.length === 0) {
+    const script_result = await pool.query('SELECT * FROM scripts WHERE id = $1', [scriptId]);
+    if (script_result.rows.length === 0) {
       return res.status(404).json({ error: 'Script not found' });
     }
-    res.json(result.rows[0]);
+    const script_roles_result = await pool.query('SELECT role_id FROM script_roles WHERE script_id = $1', [scriptId]);
+    script_result.rows[0].roles = script_roles_result.rows.map(row => row.role_id);
+
+    res.json(script_result.rows[0]);
+    
   } catch (err) {
     console.error('Error querying script:', err);
     res.status(500).json({ error: 'Database error' });
