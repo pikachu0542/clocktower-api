@@ -115,8 +115,7 @@ app.get('/api/scripts', async (req, res) => {
           a.alignment_name
         FROM roles r
          JOIN role_teams t ON r.team_id = t.id
-         JOIN alignments a ON t.alignment_id = a.id;`,
-  [scriptId]);
+         JOIN alignments a ON t.alignment_id = a.id;`);
       res.json(roles_result.rows);     
     } catch (err) {
       console.error('Error querying script:', err);
