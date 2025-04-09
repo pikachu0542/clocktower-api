@@ -100,3 +100,26 @@ app.get('/api/scripts', async (req, res) => {
       res.status(500).json({ error: 'Database error' });
     }
   });
+
+  //get all roles for role viewer
+  //returns all roles with their id, name, description, team name, and alignment name
+  app.get('/api/roles/', async (req, res) => {
+    const scriptId = req.params.id;
+    try {
+      const roles_result = await pool.query(
+        `SELECT
+          r.id,
+          r.role_name,
+          r.description,
+          t.team_name,
+          a.alignment_name
+        FROM roles r
+         JOIN role_teams t ON r.team_id = t.id
+         JOIN alignments a ON t.alignment_id = a.id;`,
+  [scriptId]);
+      res.json(roles_result.rows);     
+    } catch (err) {
+      console.error('Error querying script:', err);
+      res.status(500).json({ error: 'Database error' });
+    }
+  });
