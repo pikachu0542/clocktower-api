@@ -73,6 +73,7 @@ app.get('/api/scripts/:id', async (req, res) => {
     }
     const script_roles_result = await pool.query(
       `SELECT
+          r.id
           r.role_name,
           r.description,
           t.team_name,
@@ -82,7 +83,14 @@ app.get('/api/scripts/:id', async (req, res) => {
               JOIN role_teams t ON r.team_id = t.id
               JOIN alignments a ON t.alignment_id = a.id
       WHERE sr.script_id = $1;`, [scriptId]);
-    script_result.rows[0].roles = script_roles_result.rows.map(row => row.role_id);
+      
+    script_result.rows[0].roles = script_roles_result.rows.map(row => ({
+      id: row.id,
+      role_name: row.role_name,
+      description: row.description,
+      team_name: row.team_name,
+      alignment_name: row.alignment_name
+    }));
 
     res.json(script_result.rows[0]);
     
