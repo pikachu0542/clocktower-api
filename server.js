@@ -25,7 +25,7 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-//testing purposes
+//gets all alignments
 app.get('/api/alignments', async (req, res) => {
     try {
       const result = await pool.query('SELECT * FROM alignments');
@@ -35,3 +35,30 @@ app.get('/api/alignments', async (req, res) => {
       res.status(500).json({ error: 'Database error' });
     }
   });
+
+//adds a new role
+app.post('/api/addrole', async (req, res) => {
+  const {role_name, description, team_id, edition_id} = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO roles (role_name, description, team_id, edition_id) VALUES ($1, $2, $3, $4) RETURNING *',
+      [role_name, description, team_id, edition_id]
+    );
+
+    res.status(201).json(result.rows[0]); // Return the newly created role
+  }catch (err) {
+      console.error('Error adding role:', err);
+      res.status(500).json({ error: 'Database error' });
+    }
+})
+
+//get list of scripts
+app.get('/api/scripts', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM scripts');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error querying scripts:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
