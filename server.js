@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
+const authentication = require('./authentication')
 
 require('dotenv').config();
 
@@ -122,3 +123,30 @@ app.get('/api/scripts', async (req, res) => {
       res.status(500).json({ error: 'Database error' });
     }
   });
+
+  // authentication endpoints
+  app.post('/auth/register/', async (req, res) => {
+    
+    const username = req.body.username;
+    const password = req.body.password;
+    
+    authentication.register(username, password).then((token) => {
+      res.json({token})
+    }, (errObj) => {
+      res.status(errObj.code).json({error: errObj.message})
+    })
+    
+  });
+  
+  
+  app.post('/auth/login/', async (req, res) => {
+    
+    const username = req.body.username;
+    const password = req.body.password;
+    
+    authentication.login(username, password).then((token) => {
+      res.json({token})
+    }, (errObj) => {
+      res.status(errObj.code).send({error: errObj.message})
+    })
+  })
