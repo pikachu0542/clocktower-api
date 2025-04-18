@@ -7,27 +7,21 @@ const saltRounds = 10;
 
 const USERNAME_OR_PASSWORD_INCORRECT = "Username or password incorrect."
 const USERNAME_ALREADY_IN_USE = "This username is already in use."
+const AUTH_TOKEN_EXPIRED = "Authorization token is expired."
 
 function generateAccessToken(username) {
-    return jwt.sign({username}, process.env.TOKEN_SECRET, { expiresIn: '2h' }); // 2hr token
+    return jwt.sign({username}, process.env.TOKEN_SECRET, { expiresIn: '1d' }); // token lasts 1 day
 }
 
-function authenticationMiddleware(req, res, next) {
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
-
-    if (token == null) return res.sendStatus(401)
-
-    jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
-        
-        if (err) {
-            console.error(err)
-            return res.sendStatus(403)
-        }
-
-        req.user = user
-
-        next()
+async function validateToken(token) {
+    
+    return new Promise((resolve, reject) => {
+        jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
+            if (err) {
+                reject({code: 403, message: AUTH_TOKEN_EXPIRED})
+            }
+            resolve(user)
+        })
     })
 }
 
@@ -78,7 +72,7 @@ async function login(username, password) {
 }
 
 module.exports = {
-    authenticationMiddleware,
+    validateToken,
     register,
     login
 }
